@@ -1,0 +1,8 @@
+{
+  "name": "PathPass & GR (ZAS)",
+  "description": "Tactical GPS coordinate calculator, military grid reference (GR), RF line-of-sight path profile, and offline mapping intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

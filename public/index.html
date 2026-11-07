@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PathPass &amp; GR (ZAS) - Military Geodetic &amp; RF Link Calculator</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: ['selector', '[data-theme="dark"]'],
+            theme: {
+                extend: {
+                    colors: {
+                        cyanAccent: '#00E5FF',
+                        emeraldAccent: '#10B981',
+                        amberAccent: '#FFD600',
+                        darkSlate: '#0B132B'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#070D18] text-slate-100 min-h-screen flex flex-col antialiased select-none pb-20 md:pb-6">
+
+    <!-- TOP MILITARY HEADER BAR -->
+    <header class="sticky top-0 z-50 bg-[#0B132B]/95 backdrop-blur-md border-b border-cyan-500/30 px-4 py-2.5 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- App Identity & Military Developer Stamp -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 pulse-beacon">
+                    <i class="fa-solid fa-satellite-dish text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base md:text-lg font-black tracking-wide text-cyan-400">PathPass &amp; GR (ZAS)</h1>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-900/60 text-cyan-300 border border-cyan-500/40">MIL-STD 3.0</span>
+                    </div>
+                    <p class="text-[11px] font-semibold text-emerald-400 truncate flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-[9px]"></i>
+                        <span>1618101 Cpl (Tech) Md Zakaria Alom, 3 Signal Battalion</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Header Quick Actions -->
+            <div class="flex items-center gap-2">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggleBtn" title="Toggle Theme" class="w-9 h-9 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-cyan-400 hover:border-cyan-500 flex items-center justify-center transition-all">
+                    <i class="fa-solid fa-sun text-sm hidden dark:block text-amber-400"></i>
+                    <i class="fa-solid fa-moon text-sm block dark:hidden text-indigo-500"></i>
+                </button>
+
+                <!-- Quick Share GPS -->
+                <button id="btnShareGps" title="Share GPS Location" class="hidden sm:flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-600/40 transition-all">
+                    <i class="fa-solid fa-share-nodes"></i>
+                    <span>লাইভ লোকেশন</span>
+                </button>
+
+                <!-- Help / Info Button -->
+                <button id="btnInfoModal" title="About & Instructions" class="w-9 h-9 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-cyan-400 hover:border-cyan-500 flex items-center justify-center transition-all">
+                    <i class="fa-solid fa-circle-info text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- DESKTOP / TABLET NAVIGATION TABS -->
+    <nav class="hidden md:block bg-[#0F172A]/90 border-b border-slate-800 px-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-center gap-2 lg:gap-8">
+            <button class="nav-tab-btn active py-3 px-4 font-bold text-xs tracking-wider uppercase border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2" data-target="calcView">
+                <i class="fa-solid fa-calculator"></i>
+                <span>Coordinate Calculator (ক্যালকুলেটর)</span>
+            </button>
+            <button class="nav-tab-btn py-3 px-4 font-bold text-xs tracking-wider uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2" data-target="armyGrView">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <span>Army GR &amp; Sheet (মিলিটারি জিআর)</span>
+            </button>
+            <button class="nav-tab-btn py-3 px-4 font-bold text-xs tracking-wider uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2" data-target="rfLinkView">
+                <i class="fa-solid fa-tower-broadcast"></i>
+                <span>Network Interface &amp; RF Link (রেডিও লিংক)</span>
+            </button>
+            <button class="nav-tab-btn py-3 px-4 font-bold text-xs tracking-wider uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2" data-target="radarMapView">
+                <i class="fa-solid fa-radar"></i>
+                <span>Tactical Radar &amp; 3D Map (ম্যাপ ও রাডার)</span>
+            </button>
+            <button class="nav-tab-btn py-3 px-4 font-bold text-xs tracking-wider uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2" data-target="savedPointsView">
+                <i class="fa-solid fa-bookmark"></i>
+                <span>Saved Intel (সংরক্ষিত ডাটা)</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN INTERACTIVE CONTENT AREA -->
+    <main class="max-w-7xl mx-auto w-full flex-1 p-3 md:p-6 space-y-6">
+
+        <!-- ========================================================================= -->
+        <!-- TAB 1: COORDINATE CALCULATOR (DISTANCE, BEARING, ELEVATION)               -->
+        <!-- ========================================================================= -->
+        <section id="calcView" class="tab-pane block space-y-5">
+            <!-- Distance Unit Chips Selector -->
+            <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                    <h2 class="text-sm font-black tracking-wide text-cyan-400 uppercase">Geodetic Coordinate Calculator</h2>
+                </div>
+                <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs font-bold" id="unitSelectorGroup">
+                    <button class="unit-chip px-2.5 py-1 rounded bg-cyan-600 text-white" data-unit="km">Kilometers (km)</button>
+                    <button class="unit-chip px-2.5 py-1 rounded text-slate-400 hover:text-white" data-unit="m">Meters (m)</button>
+                    <button class="unit-chip px-2.5 py-1 rounded text-slate-400 hover:text-white" data-unit="mi">Miles (mi)</button>
+                    <button class="unit-chip px-2.5 py-1 rounded text-slate-400 hover:text-white" data-unit="nm">NM</button>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Point 1 and Point 2 Location Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- POINT 1 CARD (Observer / Site A) -->
+                <div class="tactical-card p-4 space-y-3 border-l-4 border-l-emerald-500">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <span class="font-bold text-sm text-slate-200">First Location (Point 1 / Observer)</span>
+                        </div>
+                        <button id="btnP1Gps" class="tactical-btn bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 text-xs py-1.5 px-2.5 hover:bg-emerald-600/50">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                            <span>My GPS</span>
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">টার্মিনাল / লোকেশন নাম (Site A Name)</label>
+                        <input type="text" id="p1Name" value="Site Alpha (Observer)" class="tactical-input" placeholder="e.g. Dhaka Base">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Latitude (Lat 1)</label>
+                            <input type="number" step="any" id="p1Lat" value="23.810300" class="tactical-input font-mono" placeholder="23.8103">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Longitude (Lon 1)</label>
+                            <input type="number" step="any" id="p1Lon" value="90.412500" class="tactical-input font-mono" placeholder="90.4125">
+                        </div>
+                    </div>
+
+                    <!-- Point 1 Elevation Row -->
+                    <div class="p-2 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-mountain text-xs text-emerald-400"></i>
+                            <span class="text-xs text-slate-300 font-semibold">সমুদ্রপৃষ্ঠ থেকে উচ্চতা (Point 1 Elevation):</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <input type="number" step="0.1" id="p1Elev" value="15.9" class="w-20 tactical-input py-1 px-2 text-right font-mono text-xs font-bold text-emerald-400">
+                            <span class="text-xs font-bold text-slate-400">m</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POINT 2 CARD (Target / Site B) -->
+                <div class="tactical-card p-4 space-y-3 border-l-4 border-l-rose-500">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            <span class="font-bold text-sm text-slate-200">Second Location (Point 2 / Target)</span>
+                        </div>
+                        <button id="btnP2Gps" class="tactical-btn bg-rose-600/30 text-rose-400 border border-rose-500/40 text-xs py-1.5 px-2.5 hover:bg-rose-600/50">
+                            <i class="fa-solid fa-crosshairs"></i>
+                            <span>Target GPS</span>
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">টার্মিনাল / লোকেশন নাম (Site B Name)</label>
+                        <input type="text" id="p2Name" value="Site Bravo (Target)" class="tactical-input" placeholder="e.g. Madhupur Site">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Latitude (Lat 2)</label>
+                            <input type="number" step="any" id="p2Lat" value="24.582254" class="tactical-input font-mono" placeholder="24.582254">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Longitude (Lon 2)</label>
+                            <input type="number" step="any" id="p2Lon" value="90.141237" class="tactical-input font-mono" placeholder="90.141237">
+                        </div>
+                    </div>
+
+                    <!-- Point 2 Elevation Row -->
+                    <div class="p-2 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-mountain text-xs text-rose-400"></i>
+                            <span class="text-xs text-slate-300 font-semibold">সমুদ্রপৃষ্ঠ থেকে উচ্চতা (Point 2 Elevation):</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <input type="number" step="0.1" id="p2Elev" value="22.9" class="w-20 tactical-input py-1 px-2 text-right font-mono text-xs font-bold text-rose-400">
+                            <span class="text-xs font-bold text-slate-400">m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROMINENT SWAP AND ACTION BUTTONS -->
+            <div class="flex items-center justify-center gap-3">
+                <button id="btnSwapPoints" class="tactical-btn bg-slate-800 text-cyan-400 border border-cyan-500/30 hover:bg-slate-700 w-full sm:w-auto px-6 py-2.5">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                    <span>SWAP (পয়েন্ট ১ ⇄ পয়েন্ট ২ পরিবর্তন)</span>
+                </button>
+                <button id="btnCalculateDistance" class="tactical-btn btn-cyan w-full sm:w-auto px-8 py-2.5 shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>হিসাব করুন (CALCULATE)</span>
+                </button>
+            </div>
+
+            <!-- CALCULATION RESULT CARD -->
+            <div id="calcResultCard" class="tactical-card p-5 space-y-4 border border-cyan-500/40">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-compass-drafting text-cyan-400 text-base"></i>
+                        <h3 class="text-xs font-black uppercase text-cyan-400 tracking-wider">Geodetic Computation Results</h3>
+                    </div>
+                    <button id="btnCopyCalcSummary" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-950/60 border border-cyan-500/30">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>Copy Results</span>
+                    </button>
+                </div>
+
+                <!-- Primary Metric Badges -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Geodetic Distance</p>
+                        <p id="resDistance" class="text-xl md:text-2xl font-black text-cyan-400 font-mono mt-0.5">89.65 km</p>
+                        <p id="resDistanceAlt" class="text-[11px] text-slate-400 font-mono">89,648 m</p>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">True Forward Azimuth</p>
+                        <p id="resBearing" class="text-xl md:text-2xl font-black text-amber-400 font-mono mt-0.5">342° NNW</p>
+                        <p id="resBearingDeg" class="text-[11px] text-slate-400 font-mono">342.34° True</p>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Back Azimuth (Reverse)</p>
+                        <p id="resBackBearing" class="text-xl md:text-2xl font-black text-emerald-400 font-mono mt-0.5">162° SSE</p>
+                        <p id="resBackBearingDeg" class="text-[11px] text-slate-400 font-mono">162.34° Back</p>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Elevation Difference</p>
+                        <p id="resElevDiff" class="text-xl md:text-2xl font-black text-purple-400 font-mono mt-0.5">+7.0 m</p>
+                        <p class="text-[11px] text-slate-400 font-mono">P1: 15.9m ➔ P2: 22.9m</p>
+                    </div>
+                </div>
+
+                <!-- Launch in External Google Maps -->
+                <div class="pt-2 flex items-center justify-end gap-2">
+                    <button id="btnOpenGoogleMapsRoute" class="tactical-btn bg-blue-600/30 text-blue-400 border border-blue-500/40 text-xs py-2 px-3.5 hover:bg-blue-600/40">
+                        <i class="fa-solid fa-route"></i>
+                        <span>Open in Google Maps Route</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 2: ARMY GR (MILITARY GRID REFERENCE & MAP SHEET SYSTEM)               -->
+        <!-- ========================================================================= -->
+        <section id="armyGrView" class="tab-pane hidden space-y-5">
+            <!-- Mode Selector Switcher -->
+            <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                    <h2 class="text-sm font-black tracking-wide text-emerald-400 uppercase">Military Grid Reference (Army GR) System</h2>
+                </div>
+                <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs font-bold" id="grModeToggle">
+                    <button class="gr-mode-btn px-3 py-1 rounded bg-emerald-600 text-white" data-mode="forward">LAT/LON ➔ ARMY GR</button>
+                    <button class="gr-mode-btn px-3 py-1 rounded text-slate-400 hover:text-white" data-mode="reverse">ARMY GR &amp; SHEET ➔ LAT/LON</button>
+                </div>
+            </div>
+
+            <!-- Quick Presets Dropdown (User 8 Verified Points) -->
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-crosshairs text-emerald-400 text-xs"></i>
+                    <span class="text-xs font-bold text-slate-300">ভেরিফাইড রেফারেন্স পয়েন্ট (Quick Presets):</span>
+                </div>
+                <select id="presetPointSelector" class="tactical-input w-full sm:w-auto text-xs font-bold bg-slate-800 text-cyan-300">
+                    <option value="">-- টেস্ট পয়েন্ট নির্বাচন করুন --</option>
+                </select>
+            </div>
+
+            <!-- FORWARD CONVERSION FORM: LAT/LON -> GR -->
+            <div id="grForwardForm" class="tactical-card p-4 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-300">Latitude (WGS-84)</label>
+                            <button id="btnGrPasteLat" class="text-[10px] text-cyan-400 hover:underline">Paste</button>
+                        </div>
+                        <input type="number" step="any" id="grInputLat" value="24.582254" class="tactical-input font-mono" placeholder="e.g. 24.582254">
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-300">Longitude (WGS-84)</label>
+                            <button id="btnGrPasteLon" class="text-[10px] text-cyan-400 hover:underline">Paste</button>
+                        </div>
+                        <input type="number" step="any" id="grInputLon" value="90.141237" class="tactical-input font-mono" placeholder="e.g. 90.141237">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2">
+                    <button id="btnGrUseGps" class="tactical-btn bg-slate-800 text-emerald-400 border border-emerald-500/30 text-xs py-2 px-3">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                        <span>Live GPS Detect</span>
+                    </button>
+                    <button id="btnConvertLatLonToGr" class="tactical-btn btn-emerald text-xs py-2 px-5">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>CALCULATE ARMY GR</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- REVERSE CONVERSION FORM: GR + SHEET -> LAT/LON -->
+            <div id="grReverseForm" class="tactical-card p-4 space-y-4 hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">1:50,000 Map Sheet (টোপো শিট নম্বর)</label>
+                        <input type="text" id="revMapSheetInput" value="78 L/2" class="tactical-input font-mono font-bold" placeholder="e.g. 78 L/2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Army GR (6, 8, বা 10 ডিজিট গ্রিড)</label>
+                        <input type="text" id="revGrInput" value="146184" class="tactical-input font-mono font-bold" placeholder="e.g. 146184 or 14581840">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2">
+                    <button id="btnConvertGrToLatLon" class="tactical-btn btn-emerald text-xs py-2 px-5">
+                        <i class="fa-solid fa-compass"></i>
+                        <span>SHOW LAT &amp; LONGITUDE</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MILITARY GRID OUTPUT RESULT CARD -->
+            <div id="grResultCard" class="tactical-card p-5 space-y-4 border border-emerald-500/40">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-shield text-emerald-400 text-sm"></i>
+                        <span class="text-xs font-black uppercase text-emerald-400 tracking-wider">Bangladesh Army Grid &amp; Sheet Solution</span>
+                    </div>
+
+                    <!-- CR 6: Unified One-Click COPY LAT/LON Button -->
+                    <button id="btnCopyLatLonUnified" class="tactical-btn bg-cyan-950/80 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-900 text-xs py-1.5 px-3">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>COPY LAT/LON</span>
+                    </button>
+                </div>
+
+                <!-- GR Figures Display Badges -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">6-Figure Army GR</p>
+                            <p id="resGr6" class="text-xl font-black text-emerald-400 font-mono tracking-wider">146 184</p>
+                        </div>
+                        <button class="btn-copy-gr text-xs text-slate-400 hover:text-emerald-400 p-2" data-copy-target="resGr6"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">8-Figure Army GR (Standard)</p>
+                            <p id="resGr8" class="text-xl font-black text-cyan-400 font-mono tracking-wider">1458 1840</p>
+                        </div>
+                        <button class="btn-copy-gr text-xs text-slate-400 hover:text-cyan-400 p-2" data-copy-target="resGr8"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">10-Figure Army GR (Precision)</p>
+                            <p id="resGr10" class="text-lg font-black text-amber-400 font-mono tracking-wider">14582 18404</p>
+                        </div>
+                        <button class="btn-copy-gr text-xs text-slate-400 hover:text-amber-400 p-2" data-copy-target="resGr10"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </div>
+
+                <!-- Map Sheet and Geodetic Details -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                        <span class="text-[10px] font-bold text-slate-400 block uppercase">1:50,000 Map Sheet</span>
+                        <span id="resMapSheet" class="text-sm font-black text-cyan-400 font-mono mt-0.5 block">78 L/2</span>
+                    </div>
+
+                    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                        <span class="text-[10px] font-bold text-slate-400 block uppercase">1:250,000 Sheet</span>
+                        <span id="resDegreeSheet" class="text-sm font-black text-slate-200 font-mono mt-0.5 block">78 L</span>
+                    </div>
+
+                    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                        <span class="text-[10px] font-bold text-slate-400 block uppercase">MSL Elevation (উচ্চতা)</span>
+                        <span id="resGrElevation" class="text-sm font-black text-emerald-400 font-mono mt-0.5 block">22.85 m (75.0 ft)</span>
+                    </div>
+
+                    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                        <span class="text-[10px] font-bold text-slate-400 block uppercase">BTM Coordinates</span>
+                        <span id="resBtmCoords" class="text-xs font-bold text-slate-300 font-mono mt-0.5 block">E: 514582 N: 718404</span>
+                    </div>
+                </div>
+
+                <!-- Lat / Lon Display with Quick Copy -->
+                <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">WGS-84 Coordinates:</span>
+                        <span id="resWgsLatLonDisplay" class="text-sm font-black text-cyan-400 font-mono">24.582254, 90.141237</span>
+                        <span id="resWgsDmsDisplay" class="text-xs text-slate-400 font-mono block">24° 34' 56.1" N, 90° 08' 28.5" E</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 3: NETWORK INTERFACE & RF LINK BUDGET (RADIO MOBILE STYLE)            -->
+        <!-- ========================================================================= -->
+        <section id="rfLinkView" class="tab-pane hidden space-y-5">
+            <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                    <h2 class="text-sm font-black tracking-wide text-cyan-400 uppercase">Network Interface &amp; Digital RF Link Budget</h2>
+                </div>
+                <span class="text-xs font-bold text-slate-400 font-mono">RMW / Radio Mobile Algorithm</span>
+            </div>
+
+            <!-- NETWORK INTERFACE INPUT CARD (CR 3.1) -->
+            <div class="tactical-card p-4 space-y-3 border-l-4 border-l-cyan-500">
+                <h3 class="text-xs font-black text-cyan-400 uppercase tracking-wider">Network Interface (নেটওয়ার্ক ইন্টারফেস):</h3>
+
+                <!-- Row 1: Side-by-side Frequency 1 & Frequency 2 -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">১ম ফ্রিকোয়েন্সি (Frequency 1 MHz)</label>
+                        <input type="number" id="rfFreq1" value="1350" class="tactical-input font-mono" placeholder="1350">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">২য় ফ্রিকোয়েন্সি (Frequency 2 MHz)</label>
+                        <input type="number" id="rfFreq2" value="2400" class="tactical-input font-mono" placeholder="2400">
+                    </div>
+                </div>
+
+                <!-- Row 2: Side-by-side Power Output & Antenna Gain (CR 3.1) -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Power Output (dBm)</label>
+                        <input type="number" id="rfTxPower" value="30" class="tactical-input font-mono" placeholder="30">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Antenna Gain (dBi)</label>
+                        <input type="number" id="rfAntennaGain" value="15" class="tactical-input font-mono" placeholder="15">
+                    </div>
+                </div>
+
+                <!-- Row 3: Rx Sensitivity & Tower Heights -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Rx Sensitivity (dBm)</label>
+                        <input type="number" id="rfRxSens" value="-87" class="tactical-input font-mono" placeholder="-87">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Site 1 Antenna Mast (m)</label>
+                        <input type="number" id="rfP1Mast" value="24" class="tactical-input font-mono" placeholder="24">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Site 2 Antenna Mast (m)</label>
+                        <input type="number" id="rfP2Mast" value="24" class="tactical-input font-mono" placeholder="24">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-1">
+                    <button id="btnRecalculateRf" class="tactical-btn btn-cyan text-xs py-2 px-5">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>UPDATE RF LINK BUDGET</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2D DIGITAL PATH PROFILE CANVAS (RADIO MOBILE STYLE) -->
+            <div class="tactical-card p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-cyan-400 text-sm"></i>
+                        <span class="text-xs font-black uppercase text-cyan-400 tracking-wider">2D Terrain Profile &amp; Fresnel Zone Visualizer</span>
+                    </div>
+                    <span id="rfLinkStatusBadge" class="text-xs font-black px-2.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-500/40">LOS CLEAR</span>
+                </div>
+
+                <div class="w-full bg-[#040B14] rounded-xl border border-cyan-500/30 overflow-hidden relative" style="height: 280px;">
+                    <canvas id="losProfileCanvas" class="w-full h-full block"></canvas>
+                </div>
+
+                <div class="flex items-center justify-between text-[11px] text-slate-400 font-semibold px-1">
+                    <span id="legendSiteA">Site A (0.0 km)</span>
+                    <span class="text-amber-400 font-bold">Earth Bulge (বাল্জ): <span id="lblBulge">1.5m</span> | Fresnel (F1): <span id="lblFresnel">6.8m</span></span>
+                    <span id="legendSiteB">Site B</span>
+                </div>
+            </div>
+
+            <!-- COMPLETE 13 RF LINK BUDGET PARAMETERS TABLE -->
+            <div class="tactical-card p-4 space-y-3">
+                <h3 class="text-xs font-black text-cyan-400 uppercase tracking-wider">13 RF Link Budget Telemetry Parameters:</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs font-mono" id="rfParamsGrid">
+                    <!-- Dynamic Parameter Cards injected by app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 4: TACTICAL RADAR & 3D MAP VIEW                                       -->
+        <!-- ========================================================================= -->
+        <section id="radarMapView" class="tab-pane hidden space-y-5">
+            <!-- VIEW MODE BUTTON DISPLAY STYLE (CR 2.1) -->
+            <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                    <h2 class="text-sm font-black tracking-wide text-cyan-400 uppercase">VIEW MODE DISPLAY STYLE:</h2>
+                </div>
+
+                <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs font-bold" id="mapModeSwitcher">
+                    <button class="map-mode-chip px-3 py-1 rounded bg-teal-600 text-white" data-mode="google_earth">
+                        <i class="fa-solid fa-earth-americas text-[10px]"></i> Google Earth
+                    </button>
+                    <button class="map-mode-chip px-3 py-1 rounded text-slate-400 hover:text-white" data-mode="modern_radar">
+                        <i class="fa-solid fa-radar text-[10px]"></i> Modern Radar
+                    </button>
+                    <button class="map-mode-chip px-3 py-1 rounded text-slate-400 hover:text-white" data-mode="arcgis_earth">
+                        <i class="fa-solid fa-city text-[10px]"></i> ArcGIS Earth
+                    </button>
+                    <button class="map-mode-chip px-3 py-1 rounded text-slate-400 hover:text-white" data-mode="offline_map">
+                        <i class="fa-solid fa-map text-[10px]"></i> Offline Map
+                    </button>
+                </div>
+            </div>
+
+            <!-- Radar Range Scale Selector (Visible in Modern Radar mode) -->
+            <div id="radarRangeBar" class="hidden p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between flex-wrap gap-2">
+                <span class="text-xs font-bold text-cyan-400">RADAR RANGE SCALE (দূরত্ব স্কেল):</span>
+                <div class="flex items-center gap-1 text-xs font-mono font-bold" id="radarScaleGroup">
+                    <button class="range-btn px-2.5 py-1 rounded bg-cyan-600 text-white" data-range="auto">AUTO</button>
+                    <button class="range-btn px-2.5 py-1 rounded bg-slate-800 text-slate-300" data-range="10">10km</button>
+                    <button class="range-btn px-2.5 py-1 rounded bg-slate-800 text-slate-300" data-range="25">25km</button>
+                    <button class="range-btn px-2.5 py-1 rounded bg-slate-800 text-slate-300" data-range="50">50km</button>
+                    <button class="range-btn px-2.5 py-1 rounded bg-slate-800 text-slate-300" data-range="100">100km</button>
+                </div>
+            </div>
+
+            <!-- ArcGIS 3D Controls (Visible in ArcGIS mode - CR 2.2) -->
+            <div id="arcgisControlsBar" class="hidden p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-purple-400">3D GESTURE CONTROLS:</span>
+                    <span class="text-slate-400 font-mono" id="hud3dLabel">PITCH: 0° | ROT: 0°</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button id="btnTilt45" class="px-2.5 py-1 rounded bg-purple-600 text-white font-bold hover:bg-purple-500">3D Tilt 45°</button>
+                    <button id="btnRotateLeft" class="px-2.5 py-1 rounded bg-slate-800 text-slate-200 font-bold hover:bg-slate-700">⟲ 45°</button>
+                    <button id="btnRotateRight" class="px-2.5 py-1 rounded bg-slate-800 text-slate-200 font-bold hover:bg-slate-700">⟳ 45°</button>
+                    <button id="btnReset3D" class="px-2.5 py-1 rounded bg-slate-800 text-cyan-400 font-bold hover:bg-slate-700">2D Reset</button>
+                </div>
+            </div>
+
+            <!-- MAIN MAXIMIZED VISUALIZER CANVAS (HEIGHT: 480px - CR 2.2) -->
+            <div class="tactical-card p-2 bg-[#040B14] border-cyan-500/40 relative overflow-hidden" style="min-height: 480px;">
+                <!-- 1. Leaflet Interactive Map View (Google Earth & ArcGIS Earth) -->
+                <div id="interactiveMapContainer" class="w-full h-[480px] rounded-xl map-3d-wrapper">
+                    <div id="leafletMap" class="w-full h-full map-3d-inner"></div>
+                </div>
+
+                <!-- 2. Modern Pulse-Doppler PPI Radar Scope Canvas -->
+                <div id="radarScopeContainer" class="hidden w-full h-[480px] rounded-xl relative flex items-center justify-center bg-[#030812]">
+                    <canvas id="radarScopeCanvas" class="w-full h-full block"></canvas>
+                </div>
+
+                <!-- 3. Offline Map 25km Canvas -->
+                <div id="offlineMapContainer" class="hidden w-full h-[480px] rounded-xl relative flex items-center justify-center bg-[#070D18]">
+                    <canvas id="offlineTopoCanvas" class="w-full h-full block"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 5: SAVED INTEL & LOCAL DATA                                           -->
+        <!-- ========================================================================= -->
+        <section id="savedPointsView" class="tab-pane hidden space-y-5">
+            <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                    <h2 class="text-sm font-black tracking-wide text-purple-400 uppercase">Saved Waypoints &amp; Offline Intel Storage</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btnExportJson" class="tactical-btn bg-slate-800 text-cyan-400 border border-cyan-500/30 text-xs py-1.5 px-3">
+                        <i class="fa-solid fa-download"></i> <span>Export JSON</span>
+                    </button>
+                    <button id="btnClearAllSaved" class="tactical-btn bg-rose-950/60 text-rose-400 border border-rose-500/30 text-xs py-1.5 px-3">
+                        <i class="fa-solid fa-trash-can"></i> <span>Clear</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Save Current Calculation Card -->
+            <div class="tactical-card p-4 space-y-3">
+                <h3 class="text-xs font-bold text-slate-300">Save Current Link / Coordinates to Device Storage</h3>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="savePointTitle" placeholder="Waypoint label e.g. Base Alpha to Relay 1" class="tactical-input flex-1">
+                    <button id="btnSaveCurrentPoint" class="tactical-btn btn-cyan text-xs py-2.5 px-4 whitespace-nowrap">
+                        <i class="fa-solid fa-floppy-disk"></i> <span>Save Waypoint</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Saved List -->
+            <div id="savedPointsList" class="space-y-3">
+                <!-- Dynamically populated by app.js -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0B132B]/95 backdrop-blur-md border-t border-slate-800 px-2 py-1.5 flex items-center justify-around">
+        <button class="mobile-nav-btn active flex flex-col items-center justify-center text-cyan-400 text-[10px] font-bold p-1" data-target="calcView">
+            <i class="fa-solid fa-calculator text-base mb-0.5"></i>
+            <span>ক্যালকুলেটর</span>
+        </button>
+        <button class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold p-1" data-target="armyGrView">
+            <i class="fa-solid fa-map-location-dot text-base mb-0.5"></i>
+            <span>মিলিটারি জিআর</span>
+        </button>
+        <button class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold p-1" data-target="rfLinkView">
+            <i class="fa-solid fa-tower-broadcast text-base mb-0.5"></i>
+            <span>রেডিও লিংক</span>
+        </button>
+        <button class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold p-1" data-target="radarMapView">
+            <i class="fa-solid fa-radar text-base mb-0.5"></i>
+            <span>রাডার / ম্যাপ</span>
+        </button>
+        <button class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 text-[10px] font-bold p-1" data-target="savedPointsView">
+            <i class="fa-solid fa-bookmark text-base mb-0.5"></i>
+            <span>সংরক্ষিত</span>
+        </button>
+    </nav>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- INFORMATION MODAL -->
+    <div id="infoModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="tactical-card max-w-lg w-full p-5 space-y-4 border border-cyan-500/50 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h3 class="text-sm font-black text-cyan-400 tracking-wider">ABOUT PATHPASS &amp; GR (ZAS)</h3>
+                <button id="btnCloseInfoModal" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+                <p><strong>PathPass &amp; GR (ZAS)</strong> হলো মিলিটারিস্ট্যান্ডার্ড জিওডেটিক ডিস্ট্যান্স, মিলিটারী গ্রিড রেফারেন্স (Army GR), সার্ভে অব বাংলাদেশ ১:৫০,০০০ টোপোগ্রাফিক ম্যাপ শিট কনভার্টার এবং Radio Mobile / RMW সফটওয়্যার ইঞ্জিনের সমকক্ষ ডিজিটাল লাইন-অব-সাইট (LOS) পাথ প্রোফাইল সিস্টেম।</p>
+                <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+                    <p class="font-bold text-emerald-400">ডেভলপার পরিচিতি:</p>
+                    <p class="font-semibold text-slate-200">1618101 Cpl (Tech) Md Zakaria Alom</p>
+                    <p class="text-slate-400">3 Signal Battalion, Bangladesh Army</p>
+                </div>
+                <p class="font-bold text-cyan-400">মূল বৈশিষ্ঠ্যসমূহ:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-400">
+                    <li>WGS-84 এবং Everest 1830 (Gulshan 303) এলিপসয়েডের নির্ভুল ট্রান্সফরমেশন</li>
+                    <li>Survey of Bangladesh GTS ও গুগল আর্থ ক্যালিব্রেটেড এলিভেশন মডেল</li>
+                    <li>১-ক্লিকে ল্যাটিচিউড-লংগিচিউড কপি করার সুবিধা</li>
+                    <li>13 প্যারামিটার ডিজিটাল আরএফ লিংক বাজেট ও ২ডি পাথ প্রোফাইল</li>
+                    <li>৩৬০° ট্যাকটিক্যাল রেডার ও ৩ডি ম্যাপ নেভিগেশন</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script src="formulas.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

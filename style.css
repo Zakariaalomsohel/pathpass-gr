@@ -1,0 +1,258 @@
+/* PathPass & GR (ZAS) - Military Tactical Web Application Stylesheet */
+:root {
+    --bg-main: #070D18;
+    --bg-card: #0F172A;
+    --bg-card-subtle: #1E293B;
+    --border-color: #334155;
+    --border-glow: rgba(0, 229, 255, 0.4);
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    --accent-cyan: #00E5FF;
+    --accent-emerald: #10B981;
+    --accent-amber: #FFD600;
+    --accent-red: #EF4444;
+    --accent-purple: #7C3AED;
+    --header-bg: rgba(11, 19, 43, 0.85);
+    --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(0, 229, 255, 0.15);
+}
+
+[data-theme="light"] {
+    --bg-main: #F1F5F9;
+    --bg-card: #FFFFFF;
+    --bg-card-subtle: #E2E8F0;
+    --border-color: #CBD5E1;
+    --border-glow: rgba(2, 132, 199, 0.4);
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+    --accent-cyan: #0284C7;
+    --accent-emerald: #059669;
+    --accent-amber: #D97706;
+    --accent-red: #DC2626;
+    --accent-purple: #6D28D9;
+    --header-bg: rgba(255, 255, 255, 0.9);
+    --card-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.tactical-font {
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 0.5px;
+}
+
+/* Glassmorphism Card Style */
+.tactical-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tactical-card:hover {
+    border-color: var(--border-glow);
+}
+
+/* Interactive Buttons */
+.tactical-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    border: none;
+    outline: none;
+}
+
+.tactical-btn:active {
+    transform: scale(0.97);
+}
+
+.btn-cyan {
+    background: linear-gradient(135deg, #00B4D8, #0077B6);
+    color: #FFFFFF;
+    box-shadow: 0 2px 10px rgba(0, 180, 216, 0.3);
+}
+
+.btn-cyan:hover {
+    background: linear-gradient(135deg, #00E5FF, #0096C7);
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4);
+}
+
+.btn-emerald {
+    background: linear-gradient(135deg, #059669, #10B981);
+    color: #FFFFFF;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+}
+
+.btn-emerald:hover {
+    background: linear-gradient(135deg, #10B981, #34D399);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-outline:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.05);
+}
+
+/* Tactical Input Fields */
+.tactical-input {
+    background: var(--bg-card-subtle);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tactical-input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.2);
+}
+
+/* Tab Active States */
+.tab-btn {
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    color: var(--accent-cyan);
+    border-bottom: 2px solid var(--accent-cyan);
+}
+
+/* Toast Notification Styles */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.toast {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid var(--accent-cyan);
+    color: #F8FAFC;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 229, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: auto;
+}
+
+.toast.toast-success {
+    border-color: var(--accent-emerald);
+}
+
+.toast.toast-error {
+    border-color: var(--accent-red);
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Radar Scope Pulsing Effect */
+@keyframes radarSweep {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 229, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
+    }
+}
+
+.pulse-beacon {
+    animation: pulseGlow 1.8s infinite;
+}
+
+/* 3D Perspective Map Container */
+.map-3d-wrapper {
+    perspective: 900px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 12px;
+}
+
+.map-3d-inner {
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 60%;
+    transition: transform 0.08s ease-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan);
+}
